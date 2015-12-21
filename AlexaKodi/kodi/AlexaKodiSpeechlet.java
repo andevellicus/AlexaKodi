@@ -169,11 +169,11 @@ public class AlexaKodiSpeechlet implements Speechlet {
      * @return SpeechletResponse spoken and visual response for the given intent
      */
     private SpeechletResponse getHelpResponse() {
-        String speechText = "You can say hello to me!";
+        String speechText = "You can control playback to kodi. Say play, pause, or stop.";
 
         // Create the Simple card content.
         SimpleCard card = new SimpleCard();
-        card.setTitle("HelloAlexa");
+        card.setTitle("Kodi");
         card.setContent(speechText);
 
         // Create the plain text output.
