@@ -25,12 +25,28 @@ import com.amazon.speech.ui.PlainTextOutputSpeech;
 import com.amazon.speech.ui.Reprompt;
 import com.amazon.speech.ui.SimpleCard;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+
+//import javax.net.ssl.HttpsURLConnection;
+
 /**
  * This sample shows how to create a simple speechlet for handling speechlet requests.
  */
 public class AlexaKodiSpeechlet implements Speechlet {
     private static final Logger log = LoggerFactory.getLogger(AlexaKodiSpeechlet.class);
 
+    private static final String URL = "http://archania.net";
+    private static final String PORT = "8000";
+    
+    private static final String USERNAME = "kodi";
+    private static final String PASSWORD = "murcielago";
+    
     @Override
     public void onSessionStarted(final SessionStartedRequest request, final Session session)
             throws SpeechletException {
@@ -86,6 +102,14 @@ public class AlexaKodiSpeechlet implements Speechlet {
         // Create the plain text output.
         PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
         speech.setText(speechText);
+        
+        try {
+        	sendPost("stop");
+        } catch (MalformedURLException e) {
+        	e.printStackTrace();
+        } catch (IOException e) {
+        	e.printStackTrace();
+        }
 
         return SpeechletResponse.newTellResponse(speech, card);
 	}
@@ -106,6 +130,14 @@ public class AlexaKodiSpeechlet implements Speechlet {
         // Create the plain text output.
         PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
         speech.setText(speechText);
+        
+        try {
+        	sendPost("pause");
+        } catch (MalformedURLException e) {
+        	e.printStackTrace();
+        } catch (IOException e) {
+        	e.printStackTrace();
+        }
 
         return SpeechletResponse.newTellResponse(speech, card);
 	}
@@ -126,6 +158,14 @@ public class AlexaKodiSpeechlet implements Speechlet {
         // Create the plain text output.
         PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
         speech.setText(speechText);
+        
+        try {
+        	sendPost("play");
+        } catch (MalformedURLException e) {
+        	e.printStackTrace();
+        } catch (IOException e) {
+        	e.printStackTrace();
+        }
 
         return SpeechletResponse.newTellResponse(speech, card);
 	}
@@ -185,5 +225,47 @@ public class AlexaKodiSpeechlet implements Speechlet {
         reprompt.setOutputSpeech(speech);
 
         return SpeechletResponse.newAskResponse(speech, reprompt, card);
+    }
+    
+    private void sendPost(String args) throws MalformedURLException, IOException {
+    	String url = URL + ":" + PORT +"/kodi";
+    	String param = "u=" + USERNAME + "&p=" + PASSWORD + "&args=" + args;
+    	
+    	log.info("URL: " + url);
+    	log.info("params: " + param);
+    	
+    	byte[] postData = param.getBytes( StandardCharsets.UTF_8 );
+    	
+    	URL address = new URL(url);
+    	HttpURLConnection connection = (HttpURLConnection)address.openConnection();
+    	
+        connection.setRequestMethod( "POST" );
+        connection.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded"); 
+        connection.setRequestProperty( "charset", "utf-8");
+        connection.setRequestProperty( "Content-Length", String.valueOf(postData.length));
+        connection.setDoOutput( true );
+
+        connection.getOutputStream().write(postData);
+        
+        int responseCode = connection.getResponseCode();
+        log.info("POST Response Code :: " + responseCode);
+ 
+        if (responseCode == HttpURLConnection.HTTP_OK) { //success
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+ 
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+ 
+            // print result
+            log.info(response.toString());
+        } else {
+            log.warn("POST request not worked");
+        }
+        
+        
     }
 }
