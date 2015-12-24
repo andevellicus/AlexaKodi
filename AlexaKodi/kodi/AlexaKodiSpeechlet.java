@@ -28,12 +28,12 @@ import com.amazon.speech.ui.SimpleCard;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
+//import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-//import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * This sample shows how to create a simple speechlet for handling speechlet requests.
@@ -41,7 +41,7 @@ import java.nio.charset.StandardCharsets;
 public class AlexaKodiSpeechlet implements Speechlet {
     private static final Logger log = LoggerFactory.getLogger(AlexaKodiSpeechlet.class);
 
-    private static final String URL = "http://archania.net";
+    private static final String URL = "https://archania.net";
     private static final String PORT = "8000";
     
     private static final String USERNAME = "kodi";
@@ -227,7 +227,7 @@ public class AlexaKodiSpeechlet implements Speechlet {
         return SpeechletResponse.newAskResponse(speech, reprompt, card);
     }
     
-    private void sendPost(String args) throws MalformedURLException, IOException {
+    private String sendPost(String args) throws MalformedURLException, IOException {
     	String url = URL + ":" + PORT +"/kodi";
     	String param = "u=" + USERNAME + "&p=" + PASSWORD + "&args=" + args;
     	
@@ -237,7 +237,7 @@ public class AlexaKodiSpeechlet implements Speechlet {
     	byte[] postData = param.getBytes( StandardCharsets.UTF_8 );
     	
     	URL address = new URL(url);
-    	HttpURLConnection connection = (HttpURLConnection)address.openConnection();
+    	HttpsURLConnection connection = (HttpsURLConnection)address.openConnection();
     	
         connection.setRequestMethod( "POST" );
         connection.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded"); 
@@ -250,7 +250,7 @@ public class AlexaKodiSpeechlet implements Speechlet {
         int responseCode = connection.getResponseCode();
         log.info("POST Response Code :: " + responseCode);
  
-        if (responseCode == HttpURLConnection.HTTP_OK) { //success
+        if (responseCode == HttpsURLConnection.HTTP_OK) { //success
             BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             String inputLine;
             StringBuffer response = new StringBuffer();
@@ -262,8 +262,10 @@ public class AlexaKodiSpeechlet implements Speechlet {
  
             // print result
             log.info(response.toString());
+            return response.toString();
         } else {
-            log.warn("POST request not worked");
+            log.warn("POST request failed.");
+            return null;
         }
         
         
